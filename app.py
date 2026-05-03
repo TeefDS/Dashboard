@@ -357,50 +357,75 @@ df = generate_dummy_data()
 # =========================================================
 # TOP BAR
 # =========================================================
+# =========================================================
+# TOP BAR
+# =========================================================
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
-row1_col1, row1_col2, row1_col3, row1_col4 = st.columns([1.35, 1.25, 1.1, 1.0])
+# ---------- Row 1 ----------
+r1c1, r1c2, r1c3, r1c4 = st.columns([1.6, 1.2, 1.1, 1.0], gap="small")
 
-with row1_col1:
-    st.markdown("### Filters & Search")
+with r1c1:
+    st.markdown(
+        f"""
+        <div style="padding-top: 6px;">
+            <div style="font-size:30px; font-weight:800; color:{TEXT}; line-height:1;">
+                Filters & Search
+            </div>
+            <div style="font-size:13px; color:{MUTED}; margin-top:6px;">
+                Explore alerts by category, date range, source, or keyword
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-with row1_col2:
+with r1c2:
     selected_category = st.selectbox(
         "Product Category",
         ["All"] + sorted(df["product_category"].unique().tolist()),
-        index=0
+        index=0,
+        key="selected_category"
     )
 
-with row1_col3:
+with r1c3:
     selected_range = st.selectbox(
         "Date Range",
         ["Today", "Last 7 Days", "Last 30 Days", "All"],
-        index=0
+        index=0,
+        key="selected_range"
     )
 
-with row1_col4:
+with r1c4:
     selected_source = st.selectbox(
         "Source",
         ["All"] + sorted(df["source"].unique().tolist()),
-        index=0
+        index=0,
+        key="selected_source"
     )
 
-row2_col1, row2_col2, row2_col3 = st.columns([4, 1.2, 6])
+st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
 
-with row2_col1:
-    search_text = st.text_input("Search", placeholder="City / title / symptom")
+# ---------- Row 2 ----------
+r2c1, r2c2, r2c3 = st.columns([3.2, 0.9, 5.5], gap="small")
 
-with row2_col2:
-    st.write("")
-    st.write("")
+with r2c1:
+    search_text = st.text_input(
+        "Search",
+        placeholder="Search by city, title, symptom...",
+        key="search_text"
+    )
+
+with r2c2:
+    st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
     st.button(
-        "🌙 Dark" if not is_dark else "☀️ Light",
+        "☀️ Light" if is_dark else "🌙 Dark",
         on_click=toggle_theme,
         use_container_width=True
     )
 
-with row2_col3:
-    st.write("")
+with r2c3:
+    st.markdown("")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
