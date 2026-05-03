@@ -158,10 +158,17 @@ st.markdown(f"""
 def generate_dummy_data():
     np.random.seed(42)
 
-    # Hotspots = مدن فيها alerts كثيرة عشان يبان أكثر من alert بنفس المكان
-    hotspots = [
-        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753, 18),
-        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728, 16),
+    # السعودية فيها كثافة عالية جدًا
+    saudi_hotspots = [
+        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753, 22),
+        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728, 20),
+        ("Dammam", "Saudi Arabia", 26.4207, 50.0888, 15),
+        ("Makkah", "Saudi Arabia", 21.3891, 39.8579, 12),
+        ("Madinah", "Saudi Arabia", 24.5247, 39.5692, 10),
+        ("Khobar", "Saudi Arabia", 26.2172, 50.1971, 10),
+    ]
+
+    global_hotspots = [
         ("Dubai", "UAE", 25.2048, 55.2708, 15),
         ("London", "UK", 51.5072, -0.1276, 14),
         ("New York", "USA", 40.7128, -74.0060, 14),
@@ -173,7 +180,6 @@ def generate_dummy_data():
     ]
 
     regular_places = [
-        ("Dammam", "Saudi Arabia", 26.4207, 50.0888),
         ("Doha", "Qatar", 25.2854, 51.5310),
         ("Kuwait City", "Kuwait", 29.3759, 47.9774),
         ("Manama", "Bahrain", 26.2235, 50.5876),
@@ -218,26 +224,61 @@ def generate_dummy_data():
     rows = []
     idx = 1
 
-    # Alerts today
-    total_today = 220
+    # اليوم الحالي
+    total_today = 260
+    # قديم
+    total_old = 220
 
-    # Old alerts
-    total_old = 180
+    saudi_weights = np.array([x[4] for x in saudi_hotspots], dtype=float)
+    saudi_weights = saudi_weights / saudi_weights.sum()
 
-    # أول شيء نسوي alerts كثيرة على المدن الساخنة
-    hotspot_weights = np.array([x[4] for x in hotspots], dtype=float)
-    hotspot_weights = hotspot_weights / hotspot_weights.sum()
+    global_weights = np.array([x[4] for x in global_hotspots], dtype=float)
+    global_weights = global_weights / global_weights.sum()
 
-    for _ in range(total_today):
-        if np.random.rand() < 0.72:
-            chosen_idx = np.random.choice(len(hotspots), p=hotspot_weights)
-            city, country, lat, lon, _ = hotspots[chosen_idx]
+    # 150 من اليوم داخل السعودية تقريبًا
+    saudi_today = 150
+    global_today = total_today - saudi_today
+
+    for _ in range(saudi_today):
+        chosen_idx = np.random.choice(len(saudi_hotspots), p=saudi_weights)
+        city, country, lat, lon, _ = saudi_hotspots[chosen_idx]
+
+        category = np.random.choice(product_categories, p=product_probs)
+        symptom = np.random.choice(symptoms, p=symptom_probs)
+        source = np.random.choice(sources, p=source_probs)
+        hazard = np.random.choice(hazards)
+        status = np.random.choice(statuses, p=[0.46, 0.34, 0.20])
+        level = np.random.choice(levels, p=[0.42, 0.36, 0.22])
+        cases = np.random.randint(3, 45)
+
+        rows.append({
+            "alert_id": idx,
+            "date": today,
+            "city": city,
+            "country": country,
+            "lat": lat + np.random.normal(0, 0.14),
+            "lon": lon + np.random.normal(0, 0.14),
+            "product_category": category,
+            "symptom": symptom,
+            "source": source,
+            "hazard": hazard,
+            "status": status,
+            "alert_level": level,
+            "cases": cases,
+            "title": f"{hazard} alert related to {category.lower()} products in {city}"
+        })
+        idx += 1
+
+    for _ in range(global_today):
+        if np.random.rand() < 0.7:
+            chosen_idx = np.random.choice(len(global_hotspots), p=global_weights)
+            city, country, lat, lon, _ = global_hotspots[chosen_idx]
             jitter_lat = np.random.normal(0, 0.18)
             jitter_lon = np.random.normal(0, 0.18)
         else:
             city, country, lat, lon = regular_places[np.random.randint(0, len(regular_places))]
-            jitter_lat = np.random.normal(0, 0.22)
-            jitter_lon = np.random.normal(0, 0.22)
+            jitter_lat = np.random.normal(0, 0.20)
+            jitter_lon = np.random.normal(0, 0.20)
 
         category = np.random.choice(product_categories, p=product_probs)
         symptom = np.random.choice(symptoms, p=symptom_probs)
@@ -265,19 +306,20 @@ def generate_dummy_data():
         })
         idx += 1
 
-    # Alerts قديمة
-    all_places_for_old = [(x[0], x[1], x[2], x[3]) for x in hotspots] + regular_places
+    # البيانات القديمة
+    all_old_places = [(x[0], x[1], x[2], x[3]) for x in saudi_hotspots] + [(x[0], x[1], x[2], x[3]) for x in global_hotspots] + regular_places
 
     for _ in range(total_old):
-        if np.random.rand() < 0.60:
-            chosen_idx = np.random.choice(len(hotspots), p=hotspot_weights)
-            city, country, lat, lon, _ = hotspots[chosen_idx]
-            jitter_lat = np.random.normal(0, 0.20)
-            jitter_lon = np.random.normal(0, 0.20)
+        # برضه نخلي السعودية فيها كثافة أكبر
+        if np.random.rand() < 0.45:
+            chosen_idx = np.random.choice(len(saudi_hotspots), p=saudi_weights)
+            city, country, lat, lon, _ = saudi_hotspots[chosen_idx]
+            jitter_lat = np.random.normal(0, 0.15)
+            jitter_lon = np.random.normal(0, 0.15)
         else:
-            city, country, lat, lon = all_places_for_old[np.random.randint(0, len(all_places_for_old))]
-            jitter_lat = np.random.normal(0, 0.25)
-            jitter_lon = np.random.normal(0, 0.25)
+            city, country, lat, lon = all_old_places[np.random.randint(0, len(all_old_places))]
+            jitter_lat = np.random.normal(0, 0.22)
+            jitter_lon = np.random.normal(0, 0.22)
 
         category = np.random.choice(product_categories, p=product_probs)
         symptom = np.random.choice(symptoms, p=symptom_probs)
@@ -315,44 +357,50 @@ df = generate_dummy_data()
 # =========================================================
 # TOP BAR
 # =========================================================
-top1, top2 = st.columns([11, 1])
-with top2:
-    st.button(
-        "🌙 Dark" if not is_dark else "☀️ Light",
-        on_click=toggle_theme,
-        use_container_width=True
-    )
-
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
-f1, f2, f3, f4, f5 = st.columns([1.35, 1.25, 1.1, 1.0, 0.9])
+row1_col1, row1_col2, row1_col3, row1_col4 = st.columns([1.35, 1.25, 1.1, 1.0])
 
-with f1:
+with row1_col1:
     st.markdown("### Filters & Search")
 
-with f2:
+with row1_col2:
     selected_category = st.selectbox(
         "Product Category",
         ["All"] + sorted(df["product_category"].unique().tolist()),
         index=0
     )
 
-with f3:
+with row1_col3:
     selected_range = st.selectbox(
         "Date Range",
         ["Today", "Last 7 Days", "Last 30 Days", "All"],
         index=0
     )
 
-with f4:
+with row1_col4:
     selected_source = st.selectbox(
         "Source",
         ["All"] + sorted(df["source"].unique().tolist()),
         index=0
     )
 
-with f5:
+row2_col1, row2_col2, row2_col3 = st.columns([4, 1.2, 6])
+
+with row2_col1:
     search_text = st.text_input("Search", placeholder="City / title / symptom")
+
+with row2_col2:
+    st.write("")
+    st.write("")
+    st.button(
+        "🌙 Dark" if not is_dark else "☀️ Light",
+        on_click=toggle_theme,
+        use_container_width=True
+    )
+
+with row2_col3:
+    st.write("")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -481,9 +529,9 @@ else:
     deck = pdk.Deck(
         layers=[glow_layer, core_layer],
         initial_view_state=pdk.ViewState(
-            latitude=20,
-            longitude=15,
-            zoom=1.1,
+            latitude=23,
+            longitude=24,
+            zoom=1.15,
             pitch=0
         ),
         map_style=MAP_STYLE,
@@ -604,7 +652,9 @@ with st.expander("Show Dummy Data Table"):
     show_df = filtered_df.sort_values(["date", "cases"], ascending=[False, False]).reset_index(drop=True)
     st.dataframe(show_df, use_container_width=True)
 
+saudi_count = (df["country"] == "Saudi Arabia").sum()
+
 st.markdown(
-    f'<div class="footer-note">Dummy data rows: {len(df)} | Filtered rows: {len(filtered_df)} | Mode: {st.session_state.theme_mode}</div>',
+    f'<div class="footer-note">Dummy data rows: {len(df)} | Saudi Arabia rows: {saudi_count} | Filtered rows: {len(filtered_df)} | Mode: {st.session_state.theme_mode}</div>',
     unsafe_allow_html=True
 )
