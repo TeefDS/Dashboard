@@ -1,6 +1,5 @@
 streamlit
-torch
-transformers
 pandas
-sentencepiece
-accelerate
+numpy
+pydeck
+plotly
