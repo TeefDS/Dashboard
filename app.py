@@ -16,102 +16,137 @@ st.set_page_config(
 )
 
 # =========================================================
-# CUSTOM CSS - LIGHT MODE
+# THEME SWITCH
 # =========================================================
-st.markdown("""
-<style>
-    .stApp {
-        background: linear-gradient(180deg, #f7f9ff 0%, #edf3ff 100%);
-    }
+if "theme_mode" not in st.session_state:
+    st.session_state.theme_mode = "Dark"
 
-    .block-container {
+def toggle_theme():
+    st.session_state.theme_mode = (
+        "Light" if st.session_state.theme_mode == "Dark" else "Dark"
+    )
+
+is_dark = st.session_state.theme_mode == "Dark"
+
+# =========================================================
+# THEME COLORS
+# =========================================================
+if is_dark:
+    BG = "linear-gradient(180deg, #020817 0%, #071226 100%)"
+    CARD_BG = "rgba(10, 20, 40, 0.92)"
+    BAR_BG = "rgba(10, 20, 40, 0.90)"
+    BORDER = "#1d3a66"
+    TEXT = "#eaf2ff"
+    MUTED = "#9db2ce"
+    GRID = "rgba(120, 160, 220, 0.15)"
+    MAP_STYLE = "mapbox://styles/mapbox/dark-v10"
+else:
+    BG = "linear-gradient(180deg, #f7f9ff 0%, #edf3ff 100%)"
+    CARD_BG = "rgba(255,255,255,0.92)"
+    BAR_BG = "rgba(255,255,255,0.90)"
+    BORDER = "#dbe7ff"
+    TEXT = "#243247"
+    MUTED = "#6c7a93"
+    GRID = "rgba(120, 140, 170, 0.20)"
+    MAP_STYLE = "mapbox://styles/mapbox/light-v10"
+
+# =========================================================
+# CUSTOM CSS
+# =========================================================
+st.markdown(f"""
+<style>
+    .stApp {{
+        background: {BG};
+    }}
+
+    .block-container {{
         padding-top: 1.2rem;
         padding-bottom: 1.5rem;
-        max-width: 1400px;
-    }
+        max-width: 1450px;
+    }}
 
-    .top-bar {
-        background: rgba(255,255,255,0.90);
-        border: 1px solid #dbe7ff;
+    .top-bar {{
+        background: {BAR_BG};
+        border: 1px solid {BORDER};
         border-radius: 22px;
         padding: 14px 18px;
         margin-bottom: 14px;
-        box-shadow: 0 10px 30px rgba(67, 97, 238, 0.08);
-    }
+        box-shadow: 0 10px 30px rgba(40, 70, 140, 0.12);
+    }}
 
-    .card {
-        background: rgba(255,255,255,0.92);
-        border: 1px solid #dbe7ff;
+    .card {{
+        background: {CARD_BG};
+        border: 1px solid {BORDER};
         border-radius: 22px;
         padding: 18px 20px;
-        box-shadow: 0 12px 30px rgba(80, 110, 180, 0.08);
+        box-shadow: 0 12px 30px rgba(40, 70, 140, 0.10);
         margin-bottom: 14px;
-    }
+    }}
 
-    .kpi-blue {
-        background: linear-gradient(135deg, rgba(226,241,255,0.95), rgba(241,247,255,0.95));
-        border: 1px solid #86c5ff;
-        box-shadow: 0 0 0 1px rgba(134,197,255,0.15), 0 12px 30px rgba(52, 152, 219, 0.10);
-    }
+    .kpi-blue {{
+        background: {"linear-gradient(135deg, rgba(7,32,68,0.95), rgba(11,30,58,0.95))" if is_dark else "linear-gradient(135deg, rgba(226,241,255,0.95), rgba(241,247,255,0.95))"};
+        border: 1px solid {"#3d7fd4" if is_dark else "#86c5ff"};
+    }}
 
-    .kpi-pink {
-        background: linear-gradient(135deg, rgba(255,231,240,0.95), rgba(255,243,247,0.95));
-        border: 1px solid #ff89ae;
-        box-shadow: 0 0 0 1px rgba(255,137,174,0.15), 0 12px 30px rgba(231, 76, 60, 0.10);
-    }
+    .kpi-pink {{
+        background: {"linear-gradient(135deg, rgba(65,18,38,0.95), rgba(53,18,42,0.95))" if is_dark else "linear-gradient(135deg, rgba(255,231,240,0.95), rgba(255,243,247,0.95))"};
+        border: 1px solid {"#d86a98" if is_dark else "#ff89ae"};
+    }}
 
-    .kpi-green {
-        background: linear-gradient(135deg, rgba(228,255,239,0.95), rgba(242,255,247,0.95));
-        border: 1px solid #78d69a;
-        box-shadow: 0 0 0 1px rgba(120,214,154,0.15), 0 12px 30px rgba(39, 174, 96, 0.10);
-    }
+    .kpi-green {{
+        background: {"linear-gradient(135deg, rgba(14,52,33,0.95), rgba(15,42,34,0.95))" if is_dark else "linear-gradient(135deg, rgba(228,255,239,0.95), rgba(242,255,247,0.95))"};
+        border: 1px solid {"#5fb87d" if is_dark else "#78d69a"};
+    }}
 
-    .kpi-title {
+    .kpi-title {{
         font-size: 16px;
-        color: #344055;
+        color: {TEXT};
         font-weight: 600;
         margin-bottom: 12px;
-    }
+    }}
 
-    .kpi-value {
+    .kpi-value {{
         font-size: 40px;
         font-weight: 800;
         line-height: 1.1;
-    }
+    }}
 
-    .kpi-blue .kpi-value { color: #35a9ff; }
-    .kpi-pink .kpi-value { color: #ff5a7a; }
-    .kpi-green .kpi-value { color: #46c36f; }
+    .kpi-blue .kpi-value {{ color: #4fc3ff; }}
+    .kpi-pink .kpi-value {{ color: #ff658c; }}
+    .kpi-green .kpi-value {{ color: #73df97; }}
 
-    .section-title {
+    .section-title {{
         font-size: 17px;
         font-weight: 700;
-        color: #2f3a4f;
+        color: {TEXT};
         margin-bottom: 10px;
-    }
+    }}
 
-    .small-note {
-        font-size: 13px;
-        color: #6c7a93;
-    }
-
-    div[data-testid="stSelectbox"] > div,
-    div[data-testid="stTextInput"] > div {
-        background: white !important;
-        border-radius: 14px !important;
-    }
-
-    .footer-note {
-        color: #6c7a93;
+    .footer-note {{
+        color: {MUTED};
         font-size: 13px;
         text-align: center;
         margin-top: 8px;
-    }
+    }}
+
+    .stSelectbox label, .stTextInput label {{
+        color: {TEXT} !important;
+        font-weight: 600;
+    }}
+
+    .stMarkdown, .stCaption, .stText, p, div {{
+        color: {TEXT};
+    }}
+
+    div[data-testid="stSelectbox"] > div,
+    div[data-testid="stTextInput"] > div {{
+        border-radius: 14px !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# DUMMY DATA GENERATION
+# DUMMY DATA
 # =========================================================
 def generate_dummy_data():
     np.random.seed(42)
@@ -126,8 +161,6 @@ def generate_dummy_data():
         ("Kuwait City", "Kuwait", 29.3759, 47.9774),
         ("Manama", "Bahrain", 26.2235, 50.5876),
         ("Muscat", "Oman", 23.5880, 58.3829),
-        ("Cairo", "Egypt", 30.0444, 31.2357),
-        ("Istanbul", "Turkey", 41.0082, 28.9784),
         ("London", "UK", 51.5072, -0.1276),
         ("Paris", "France", 48.8566, 2.3522),
         ("Berlin", "Germany", 52.5200, 13.4050),
@@ -140,10 +173,8 @@ def generate_dummy_data():
         ("Mexico City", "Mexico", 19.4326, -99.1332),
         ("Sao Paulo", "Brazil", -23.5558, -46.6396),
         ("Johannesburg", "South Africa", -26.2041, 28.0473),
-        ("Lagos", "Nigeria", 6.5244, 3.3792),
         ("Mumbai", "India", 19.0760, 72.8777),
         ("Delhi", "India", 28.7041, 77.1025),
-        ("Karachi", "Pakistan", 24.8607, 67.0011),
         ("Bangkok", "Thailand", 13.7563, 100.5018),
         ("Kuala Lumpur", "Malaysia", 3.1390, 101.6869),
         ("Jakarta", "Indonesia", -6.2088, 106.8456),
@@ -152,33 +183,28 @@ def generate_dummy_data():
         ("Shanghai", "China", 31.2304, 121.4737),
         ("Seoul", "South Korea", 37.5665, 126.9780),
         ("Tokyo", "Japan", 35.6762, 139.6503),
-        ("Sydney", "Australia", -33.8688, 151.2093),
-        ("Melbourne", "Australia", -37.8136, 144.9631)
+        ("Sydney", "Australia", -33.8688, 151.2093)
     ]
 
-    product_categories = [
-        "Poultry", "Dairy", "Vegetables", "Seafood",
-        "Bakery", "Frozen Foods", "Meat", "Other"
-    ]
-    product_probs = [0.28, 0.16, 0.18, 0.11, 0.08, 0.07, 0.07, 0.05]
+    product_categories = ["Dairy", "Poultry", "Vegetables", "Seafood", "Other"]
+    product_probs = [0.18, 0.34, 0.24, 0.10, 0.14]
 
     symptoms = ["Vomiting", "Fever", "Diarrhea", "Nausea"]
     symptom_probs = [0.40, 0.30, 0.20, 0.10]
 
     sources = ["Social Media", "Official Recall", "Consumer Complaint", "News"]
-    source_probs = [0.40, 0.25, 0.20, 0.15]
+    source_probs = [0.38, 0.28, 0.20, 0.14]
 
     hazards = ["Salmonella", "E. coli", "Listeria", "Food Poisoning", "Norovirus"]
     statuses = ["Open", "Investigating", "Closed"]
     levels = ["High", "Medium", "Low"]
 
     today = datetime.now().date()
-
     rows = []
-    total_today = 128
-    total_old = 60   # أكثر من 50 بكثير، المجموع 188
 
-    # Today's alerts -> to match the KPI in the mockup
+    total_today = 128
+    total_old = 80
+
     for i in range(total_today):
         city, country, lat, lon = cities[np.random.randint(0, len(cities))]
         category = np.random.choice(product_categories, p=product_probs)
@@ -206,7 +232,6 @@ def generate_dummy_data():
             "title": f"{hazard} alert related to {category.lower()} products in {city}"
         })
 
-    # Older alerts
     for j in range(total_old):
         city, country, lat, lon = cities[np.random.randint(0, len(cities))]
         category = np.random.choice(product_categories, p=product_probs)
@@ -242,8 +267,16 @@ def generate_dummy_data():
 df = generate_dummy_data()
 
 # =========================================================
-# FILTERS
+# TOP BAR
 # =========================================================
+top1, top2 = st.columns([10, 1])
+with top2:
+    st.button(
+        "🌙 Dark" if not is_dark else "☀️ Light",
+        on_click=toggle_theme,
+        use_container_width=True
+    )
+
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
 f1, f2, f3, f4, f5 = st.columns([1.2, 1.25, 1.1, 1.0, 0.85])
@@ -273,7 +306,7 @@ with f4:
     )
 
 with f5:
-    search_text = st.text_input("Search", placeholder="City / symptom / title")
+    search_text = st.text_input("Search", placeholder="Search")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -355,8 +388,13 @@ else:
     map_df = filtered_df.copy()
     map_df["radius_glow"] = map_df["cases"] * 2200
     map_df["radius_core"] = map_df["cases"] * 800
-    map_df["glow_color"] = [[255, 102, 102, 70]] * len(map_df)
-    map_df["core_color"] = [[255, 82, 82, 185]] * len(map_df)
+
+    if is_dark:
+        map_df["glow_color"] = [[255, 90, 90, 70]] * len(map_df)
+        map_df["core_color"] = [[255, 82, 82, 190]] * len(map_df)
+    else:
+        map_df["glow_color"] = [[255, 120, 120, 55]] * len(map_df)
+        map_df["core_color"] = [[255, 96, 96, 170]] * len(map_df)
 
     glow_layer = pdk.Layer(
         "ScatterplotLayer",
@@ -402,7 +440,7 @@ else:
             zoom=1.1,
             pitch=0
         ),
-        map_style="mapbox://styles/mapbox/light-v10",
+        map_style=MAP_STYLE,
         tooltip=tooltip
     )
 
@@ -419,11 +457,7 @@ with left_col:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Product Category Chart</div>', unsafe_allow_html=True)
 
-    cat_df = (
-        filtered_df["product_category"]
-        .value_counts()
-        .reset_index()
-    )
+    cat_df = filtered_df["product_category"].value_counts().reset_index()
     cat_df.columns = ["Product Category", "Count"]
 
     if cat_df.empty:
@@ -434,10 +468,7 @@ with left_col:
             "Poultry": "#ff6788",
             "Vegetables": "#7ed957",
             "Seafood": "#ff7f66",
-            "Bakery": "#a579ff",
-            "Frozen Foods": "#66d9ff",
-            "Meat": "#ffb347",
-            "Other": "#9b87f5"
+            "Other": "#a579ff"
         }
 
         fig_bar = px.bar(
@@ -450,7 +481,7 @@ with left_col:
 
         fig_bar.update_traces(
             marker_line_width=1.5,
-            marker_line_color="rgba(255,255,255,0.7)"
+            marker_line_color="rgba(255,255,255,0.6)"
         )
 
         fig_bar.update_layout(
@@ -461,11 +492,11 @@ with left_col:
             paper_bgcolor="rgba(0,0,0,0)",
             xaxis_title="",
             yaxis_title="",
-            font=dict(color="#334155")
+            font=dict(color=TEXT)
         )
 
         fig_bar.update_xaxes(showgrid=False)
-        fig_bar.update_yaxes(gridcolor="rgba(148, 163, 184, 0.2)")
+        fig_bar.update_yaxes(gridcolor=GRID)
 
         st.plotly_chart(fig_bar, use_container_width=True)
 
@@ -475,11 +506,7 @@ with right_col:
     st.markdown('<div class="card">', unsafe_allow_html=True)
     st.markdown('<div class="section-title">Symptom Frequency</div>', unsafe_allow_html=True)
 
-    symptom_df = (
-        filtered_df["symptom"]
-        .value_counts()
-        .reset_index()
-    )
+    symptom_df = filtered_df["symptom"].value_counts().reset_index()
     symptom_df.columns = ["Symptom", "Count"]
 
     if symptom_df.empty:
@@ -499,9 +526,7 @@ with right_col:
                     values=symptom_df["Count"],
                     hole=0.58,
                     marker=dict(colors=[symptom_colors.get(s, "#cccccc") for s in symptom_df["Symptom"]]),
-                    textinfo="label+percent",
-                    textfont=dict(size=14, color="#334155"),
-                    pull=[0.01] * len(symptom_df)
+                    textinfo="label+percent"
                 )
             ]
         )
@@ -513,25 +538,22 @@ with right_col:
                 orientation="v",
                 x=1.0,
                 y=0.5,
-                font=dict(color="#334155")
+                font=dict(color=TEXT)
             ),
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(color="#334155")
+            font=dict(color=TEXT)
         )
 
         st.plotly_chart(fig_donut, use_container_width=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-# =========================================================
-# OPTIONAL TABLE
-# =========================================================
 with st.expander("Show Dummy Data Table"):
     show_df = filtered_df.sort_values(["date", "cases"], ascending=[False, False]).reset_index(drop=True)
     st.dataframe(show_df, use_container_width=True)
 
 st.markdown(
-    f'<div class="footer-note">Dummy data rows: {len(df)} | Filtered rows: {len(filtered_df)}</div>',
+    f'<div class="footer-note">Dummy data rows: {len(df)} | Filtered rows: {len(filtered_df)} | Mode: {st.session_state.theme_mode}</div>',
     unsafe_allow_html=True
 )
