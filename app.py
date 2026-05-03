@@ -16,15 +16,16 @@ st.set_page_config(
 )
 
 # =========================================================
-# THEME SWITCH
+# THEME STATE
 # =========================================================
 if "theme_mode" not in st.session_state:
     st.session_state.theme_mode = "Dark"
 
-def toggle_theme():
-    st.session_state.theme_mode = (
-        "Light" if st.session_state.theme_mode == "Dark" else "Dark"
-    )
+if "theme_toggle" not in st.session_state:
+    st.session_state.theme_toggle = True if st.session_state.theme_mode == "Dark" else False
+
+def sync_theme():
+    st.session_state.theme_mode = "Dark" if st.session_state.theme_toggle else "Light"
 
 is_dark = st.session_state.theme_mode == "Dark"
 
@@ -68,8 +69,8 @@ st.markdown(f"""
     .top-bar {{
         background: {BAR_BG};
         border: 1px solid {BORDER};
-        border-radius: 12px;
-        padding: 16px 20px 14px 20px;
+        border-radius: 10px;
+        padding: 14px 18px;
         margin-bottom: 16px;
         box-shadow: 0 8px 24px rgba(40, 70, 140, 0.10);
     }}
@@ -148,6 +149,11 @@ st.markdown(f"""
     div[data-testid="stSelectbox"] > div,
     div[data-testid="stTextInput"] > div {{
         border-radius: 12px !important;
+    }}
+
+    div[data-testid="stToggle"] label {{
+        color: {TEXT} !important;
+        font-weight: 600 !important;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -357,39 +363,47 @@ df = generate_dummy_data()
 # =========================================================
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
-r1c1, r1c2, r1c3, r1c4 = st.columns([1.5, 1.15, 1.15, 1.0], gap="medium")
+c1, c2, c3, c4, c5, c6 = st.columns([1.35, 1.45, 1.1, 1.1, 1.0, 0.7], gap="medium")
 
-with r1c1:
+with c1:
     st.markdown(
         f"""
         <div style="
-            height: 78px;
+            height: 72px;
             display:flex;
             flex-direction:column;
             justify-content:center;
-            padding-left:4px;
+            padding-left:2px;
         ">
             <div style="
-                font-size:30px;
+                font-size:22px;
                 font-weight:800;
                 color:{TEXT};
-                line-height:1;
-                margin-bottom:6px;
+                line-height:1.1;
+                margin-bottom:4px;
             ">
                 Filters & Search
             </div>
             <div style="
-                font-size:13px;
+                font-size:12px;
                 color:{MUTED};
+                line-height:1.3;
             ">
-                Explore alerts by symptom, date range, source, or keyword
+                Explore alerts by city, symptom, date range, and source
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
-with r1c2:
+with c2:
+    search_text = st.text_input(
+        "Search",
+        placeholder="City / title / symptom",
+        key="search_text"
+    )
+
+with c3:
     selected_symptom = st.selectbox(
         "Symptoms",
         ["All"] + sorted(df["symptom"].unique().tolist()),
@@ -397,7 +411,7 @@ with r1c2:
         key="selected_symptom"
     )
 
-with r1c3:
+with c4:
     selected_range = st.selectbox(
         "Date Range",
         ["Last 7 Days", "Last 14 Days", "Last 30 Days", "All"],
@@ -405,7 +419,7 @@ with r1c3:
         key="selected_range"
     )
 
-with r1c4:
+with c5:
     selected_source = st.selectbox(
         "Source",
         ["All", "X", "News"],
@@ -413,27 +427,13 @@ with r1c4:
         key="selected_source"
     )
 
-st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-
-r2c1, r2c2, r2c3 = st.columns([3.2, 1.1, 5.7], gap="medium")
-
-with r2c1:
-    search_text = st.text_input(
-        "Search",
-        placeholder="City / title / symptom",
-        key="search_text"
+with c6:
+    st.markdown("<div style='height: 27px;'></div>", unsafe_allow_html=True)
+    st.toggle(
+        "Dark",
+        key="theme_toggle",
+        on_change=sync_theme
     )
-
-with r2c2:
-    st.markdown("<div style='height: 28px'></div>", unsafe_allow_html=True)
-    st.button(
-        "☀️ Light" if is_dark else "🌙 Dark",
-        on_click=toggle_theme,
-        use_container_width=True
-    )
-
-with r2c3:
-    st.markdown("")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
