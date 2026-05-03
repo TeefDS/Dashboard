@@ -33,21 +33,21 @@ is_dark = st.session_state.theme_mode == "Dark"
 # =========================================================
 if is_dark:
     BG = "linear-gradient(180deg, #020817 0%, #071226 100%)"
-    CARD_BG = "rgba(10, 20, 40, 0.92)"
-    BAR_BG = "rgba(10, 20, 40, 0.90)"
+    CARD_BG = "rgba(10, 20, 40, 0.95)"
+    BAR_BG = "rgba(10, 20, 40, 0.92)"
     BORDER = "#1d3a66"
     TEXT = "#eaf2ff"
     MUTED = "#9db2ce"
-    GRID = "rgba(120, 160, 220, 0.15)"
+    GRID = "rgba(120, 160, 220, 0.12)"
     MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
 else:
-    BG = "linear-gradient(180deg, #f7f9ff 0%, #edf3ff 100%)"
-    CARD_BG = "rgba(255,255,255,0.92)"
-    BAR_BG = "rgba(255,255,255,0.90)"
+    BG = "linear-gradient(180deg, #f6f9ff 0%, #eef4ff 100%)"
+    CARD_BG = "rgba(255,255,255,0.95)"
+    BAR_BG = "rgba(255,255,255,0.92)"
     BORDER = "#dbe7ff"
     TEXT = "#243247"
     MUTED = "#6c7a93"
-    GRID = "rgba(120, 140, 170, 0.20)"
+    GRID = "rgba(120, 140, 170, 0.18)"
     MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json"
 
 # =========================================================
@@ -60,63 +60,70 @@ st.markdown(f"""
     }}
 
     .block-container {{
-        padding-top: 1.2rem;
+        max-width: 1600px;
+        padding-top: 1rem;
         padding-bottom: 1.5rem;
-        max-width: 1450px;
     }}
 
     .top-bar {{
         background: {BAR_BG};
         border: 1px solid {BORDER};
-        border-radius: 22px;
+        border-radius: 16px;
         padding: 14px 18px;
         margin-bottom: 14px;
-        box-shadow: 0 10px 30px rgba(40, 70, 140, 0.12);
+        box-shadow: 0 8px 24px rgba(40, 70, 140, 0.10);
     }}
 
     .card {{
         background: {CARD_BG};
         border: 1px solid {BORDER};
-        border-radius: 22px;
-        padding: 18px 20px;
-        box-shadow: 0 12px 30px rgba(40, 70, 140, 0.10);
+        border-radius: 16px;
+        padding: 16px 18px;
+        box-shadow: 0 8px 24px rgba(40, 70, 140, 0.08);
         margin-bottom: 14px;
     }}
 
+    .kpi-card {{
+        min-height: 125px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }}
+
     .kpi-blue {{
-        background: {"linear-gradient(135deg, rgba(7,32,68,0.95), rgba(11,30,58,0.95))" if is_dark else "linear-gradient(135deg, rgba(226,241,255,0.95), rgba(241,247,255,0.95))"};
-        border: 1px solid {"#3d7fd4" if is_dark else "#86c5ff"};
+        background: {"linear-gradient(135deg, rgba(7,32,68,0.95), rgba(11,30,58,0.95))" if is_dark else "linear-gradient(135deg, rgba(229,242,255,0.98), rgba(242,247,255,0.98))"};
+        border: 1px solid {"#3d7fd4" if is_dark else "#8ac5ff"};
     }}
 
     .kpi-pink {{
-        background: {"linear-gradient(135deg, rgba(65,18,38,0.95), rgba(53,18,42,0.95))" if is_dark else "linear-gradient(135deg, rgba(255,231,240,0.95), rgba(255,243,247,0.95))"};
-        border: 1px solid {"#d86a98" if is_dark else "#ff89ae"};
+        background: {"linear-gradient(135deg, rgba(65,18,38,0.95), rgba(53,18,42,0.95))" if is_dark else "linear-gradient(135deg, rgba(255,234,241,0.98), rgba(255,245,248,0.98))"};
+        border: 1px solid {"#d86a98" if is_dark else "#ff90b1"};
     }}
 
     .kpi-green {{
-        background: {"linear-gradient(135deg, rgba(14,52,33,0.95), rgba(15,42,34,0.95))" if is_dark else "linear-gradient(135deg, rgba(228,255,239,0.95), rgba(242,255,247,0.95))"};
-        border: 1px solid {"#5fb87d" if is_dark else "#78d69a"};
+        background: {"linear-gradient(135deg, rgba(14,52,33,0.95), rgba(15,42,34,0.95))" if is_dark else "linear-gradient(135deg, rgba(231,255,239,0.98), rgba(245,255,249,0.98))"};
+        border: 1px solid {"#5fb87d" if is_dark else "#7ed79d"};
     }}
 
     .kpi-title {{
-        font-size: 16px;
+        font-size: 15px;
         color: {TEXT};
         font-weight: 600;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
     }}
 
     .kpi-value {{
-        font-size: 40px;
+        font-size: 38px;
         font-weight: 800;
         line-height: 1.1;
     }}
 
-    .kpi-blue .kpi-value {{ color: #4fc3ff; }}
-    .kpi-pink .kpi-value {{ color: #ff658c; }}
-    .kpi-green .kpi-value {{ color: #73df97; }}
+    .kpi-blue .kpi-value {{ color: #47bfff; }}
+    .kpi-pink .kpi-value {{ color: #ff6489; }}
+    .kpi-green .kpi-value {{ color: #63d98d; }}
 
     .section-title {{
-        font-size: 17px;
+        font-size: 18px;
         font-weight: 700;
         color: {TEXT};
         margin-bottom: 10px;
@@ -126,7 +133,7 @@ st.markdown(f"""
         color: {MUTED};
         font-size: 13px;
         text-align: center;
-        margin-top: 8px;
+        margin-top: 6px;
     }}
 
     .stSelectbox label, .stTextInput label {{
@@ -134,46 +141,54 @@ st.markdown(f"""
         font-weight: 600;
     }}
 
-    .stMarkdown, .stCaption, .stText, p, div {{
+    .stMarkdown, .stCaption, p, div {{
         color: {TEXT};
     }}
 
     div[data-testid="stSelectbox"] > div,
     div[data-testid="stTextInput"] > div {{
-        border-radius: 14px !important;
+        border-radius: 12px !important;
     }}
 </style>
 """, unsafe_allow_html=True)
 
 # =========================================================
-# DUMMY DATA
+# GENERATE DUMMY DATA
 # =========================================================
 def generate_dummy_data():
     np.random.seed(42)
 
-    cities = [
-        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753),
-        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728),
+    # Hotspots = مدن فيها alerts كثيرة عشان يبان أكثر من alert بنفس المكان
+    hotspots = [
+        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753, 18),
+        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728, 16),
+        ("Dubai", "UAE", 25.2048, 55.2708, 15),
+        ("London", "UK", 51.5072, -0.1276, 14),
+        ("New York", "USA", 40.7128, -74.0060, 14),
+        ("Mumbai", "India", 19.0760, 72.8777, 13),
+        ("Tokyo", "Japan", 35.6762, 139.6503, 12),
+        ("Paris", "France", 48.8566, 2.3522, 11),
+        ("Istanbul", "Turkey", 41.0082, 28.9784, 10),
+        ("Cairo", "Egypt", 30.0444, 31.2357, 10),
+    ]
+
+    regular_places = [
         ("Dammam", "Saudi Arabia", 26.4207, 50.0888),
-        ("Dubai", "UAE", 25.2048, 55.2708),
-        ("Abu Dhabi", "UAE", 24.4539, 54.3773),
         ("Doha", "Qatar", 25.2854, 51.5310),
         ("Kuwait City", "Kuwait", 29.3759, 47.9774),
         ("Manama", "Bahrain", 26.2235, 50.5876),
         ("Muscat", "Oman", 23.5880, 58.3829),
-        ("London", "UK", 51.5072, -0.1276),
-        ("Paris", "France", 48.8566, 2.3522),
+        ("Abu Dhabi", "UAE", 24.4539, 54.3773),
         ("Berlin", "Germany", 52.5200, 13.4050),
         ("Madrid", "Spain", 40.4168, -3.7038),
         ("Rome", "Italy", 41.9028, 12.4964),
-        ("New York", "USA", 40.7128, -74.0060),
-        ("Los Angeles", "USA", 34.0522, -118.2437),
-        ("Chicago", "USA", 41.8781, -87.6298),
         ("Toronto", "Canada", 43.6532, -79.3832),
+        ("Chicago", "USA", 41.8781, -87.6298),
+        ("Los Angeles", "USA", 34.0522, -118.2437),
         ("Mexico City", "Mexico", 19.4326, -99.1332),
         ("Sao Paulo", "Brazil", -23.5558, -46.6396),
         ("Johannesburg", "South Africa", -26.2041, 28.0473),
-        ("Mumbai", "India", 19.0760, 72.8777),
+        ("Lagos", "Nigeria", 6.5244, 3.3792),
         ("Delhi", "India", 28.7041, 77.1025),
         ("Bangkok", "Thailand", 13.7563, 100.5018),
         ("Kuala Lumpur", "Malaysia", 3.1390, 101.6869),
@@ -182,18 +197,18 @@ def generate_dummy_data():
         ("Beijing", "China", 39.9042, 116.4074),
         ("Shanghai", "China", 31.2304, 121.4737),
         ("Seoul", "South Korea", 37.5665, 126.9780),
-        ("Tokyo", "Japan", 35.6762, 139.6503),
-        ("Sydney", "Australia", -33.8688, 151.2093)
+        ("Sydney", "Australia", -33.8688, 151.2093),
+        ("Melbourne", "Australia", -37.8136, 144.9631),
     ]
 
     product_categories = ["Dairy", "Poultry", "Vegetables", "Seafood", "Other"]
-    product_probs = [0.18, 0.34, 0.24, 0.10, 0.14]
+    product_probs = [0.17, 0.34, 0.22, 0.12, 0.15]
 
     symptoms = ["Vomiting", "Fever", "Diarrhea", "Nausea"]
     symptom_probs = [0.40, 0.30, 0.20, 0.10]
 
     sources = ["Social Media", "Official Recall", "Consumer Complaint", "News"]
-    source_probs = [0.38, 0.28, 0.20, 0.14]
+    source_probs = [0.38, 0.27, 0.21, 0.14]
 
     hazards = ["Salmonella", "E. coli", "Listeria", "Food Poisoning", "Norovirus"]
     statuses = ["Open", "Investigating", "Closed"]
@@ -201,27 +216,44 @@ def generate_dummy_data():
 
     today = datetime.now().date()
     rows = []
+    idx = 1
 
-    total_today = 128
-    total_old = 80
+    # Alerts today
+    total_today = 220
 
-    for i in range(total_today):
-        city, country, lat, lon = cities[np.random.randint(0, len(cities))]
+    # Old alerts
+    total_old = 180
+
+    # أول شيء نسوي alerts كثيرة على المدن الساخنة
+    hotspot_weights = np.array([x[4] for x in hotspots], dtype=float)
+    hotspot_weights = hotspot_weights / hotspot_weights.sum()
+
+    for _ in range(total_today):
+        if np.random.rand() < 0.72:
+            chosen_idx = np.random.choice(len(hotspots), p=hotspot_weights)
+            city, country, lat, lon, _ = hotspots[chosen_idx]
+            jitter_lat = np.random.normal(0, 0.18)
+            jitter_lon = np.random.normal(0, 0.18)
+        else:
+            city, country, lat, lon = regular_places[np.random.randint(0, len(regular_places))]
+            jitter_lat = np.random.normal(0, 0.22)
+            jitter_lon = np.random.normal(0, 0.22)
+
         category = np.random.choice(product_categories, p=product_probs)
         symptom = np.random.choice(symptoms, p=symptom_probs)
         source = np.random.choice(sources, p=source_probs)
         hazard = np.random.choice(hazards)
-        status = np.random.choice(statuses, p=[0.45, 0.35, 0.20])
+        status = np.random.choice(statuses, p=[0.46, 0.34, 0.20])
         level = np.random.choice(levels, p=[0.42, 0.36, 0.22])
-        cases = np.random.randint(3, 35)
+        cases = np.random.randint(3, 40)
 
         rows.append({
-            "alert_id": i + 1,
+            "alert_id": idx,
             "date": today,
             "city": city,
             "country": country,
-            "lat": lat + np.random.normal(0, 0.25),
-            "lon": lon + np.random.normal(0, 0.25),
+            "lat": lat + jitter_lat,
+            "lon": lon + jitter_lon,
             "product_category": category,
             "symptom": symptom,
             "source": source,
@@ -231,25 +263,38 @@ def generate_dummy_data():
             "cases": cases,
             "title": f"{hazard} alert related to {category.lower()} products in {city}"
         })
+        idx += 1
 
-    for j in range(total_old):
-        city, country, lat, lon = cities[np.random.randint(0, len(cities))]
+    # Alerts قديمة
+    all_places_for_old = [(x[0], x[1], x[2], x[3]) for x in hotspots] + regular_places
+
+    for _ in range(total_old):
+        if np.random.rand() < 0.60:
+            chosen_idx = np.random.choice(len(hotspots), p=hotspot_weights)
+            city, country, lat, lon, _ = hotspots[chosen_idx]
+            jitter_lat = np.random.normal(0, 0.20)
+            jitter_lon = np.random.normal(0, 0.20)
+        else:
+            city, country, lat, lon = all_places_for_old[np.random.randint(0, len(all_places_for_old))]
+            jitter_lat = np.random.normal(0, 0.25)
+            jitter_lon = np.random.normal(0, 0.25)
+
         category = np.random.choice(product_categories, p=product_probs)
         symptom = np.random.choice(symptoms, p=symptom_probs)
         source = np.random.choice(sources, p=source_probs)
         hazard = np.random.choice(hazards)
         status = np.random.choice(statuses, p=[0.35, 0.40, 0.25])
         level = np.random.choice(levels, p=[0.35, 0.40, 0.25])
-        cases = np.random.randint(1, 28)
+        cases = np.random.randint(1, 30)
         days_back = np.random.randint(1, 31)
 
         rows.append({
-            "alert_id": total_today + j + 1,
+            "alert_id": idx,
             "date": today - timedelta(days=int(days_back)),
             "city": city,
             "country": country,
-            "lat": lat + np.random.normal(0, 0.25),
-            "lon": lon + np.random.normal(0, 0.25),
+            "lat": lat + jitter_lat,
+            "lon": lon + jitter_lon,
             "product_category": category,
             "symptom": symptom,
             "source": source,
@@ -259,6 +304,7 @@ def generate_dummy_data():
             "cases": cases,
             "title": f"{hazard} concern involving {category.lower()} items in {city}"
         })
+        idx += 1
 
     df = pd.DataFrame(rows)
     df["date"] = pd.to_datetime(df["date"])
@@ -269,7 +315,7 @@ df = generate_dummy_data()
 # =========================================================
 # TOP BAR
 # =========================================================
-top1, top2 = st.columns([10, 1])
+top1, top2 = st.columns([11, 1])
 with top2:
     st.button(
         "🌙 Dark" if not is_dark else "☀️ Light",
@@ -279,7 +325,7 @@ with top2:
 
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
-f1, f2, f3, f4, f5 = st.columns([1.2, 1.25, 1.1, 1.0, 0.85])
+f1, f2, f3, f4, f5 = st.columns([1.35, 1.25, 1.1, 1.0, 0.9])
 
 with f1:
     st.markdown("### Filters & Search")
@@ -306,7 +352,7 @@ with f4:
     )
 
 with f5:
-    search_text = st.text_input("Search", placeholder="Search")
+    search_text = st.text_input("Search", placeholder="City / title / symptom")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -333,11 +379,11 @@ if selected_source != "All":
 if search_text:
     q = search_text.strip().lower()
     filtered_df = filtered_df[
-        filtered_df["city"].str.lower().str.contains(q) |
-        filtered_df["country"].str.lower().str.contains(q) |
-        filtered_df["symptom"].str.lower().str.contains(q) |
-        filtered_df["product_category"].str.lower().str.contains(q) |
-        filtered_df["title"].str.lower().str.contains(q)
+        filtered_df["city"].str.lower().str.contains(q, na=False) |
+        filtered_df["country"].str.lower().str.contains(q, na=False) |
+        filtered_df["symptom"].str.lower().str.contains(q, na=False) |
+        filtered_df["product_category"].str.lower().str.contains(q, na=False) |
+        filtered_df["title"].str.lower().str.contains(q, na=False)
     ]
 
 # =========================================================
@@ -354,15 +400,15 @@ c1, c2, c3 = st.columns(3)
 
 with c1:
     st.markdown(f"""
-    <div class="card kpi-blue">
-        <div class="kpi-title">Total Alerts Detected Today</div>
+    <div class="card kpi-card kpi-blue">
+        <div class="kpi-title">Total Alerts Detected</div>
         <div class="kpi-value">{total_alerts}</div>
     </div>
     """, unsafe_allow_html=True)
 
 with c2:
     st.markdown(f"""
-    <div class="card kpi-pink">
+    <div class="card kpi-card kpi-pink">
         <div class="kpi-title">Most Common Product Category</div>
         <div class="kpi-value">{top_category}</div>
     </div>
@@ -370,7 +416,7 @@ with c2:
 
 with c3:
     st.markdown(f"""
-    <div class="card kpi-green">
+    <div class="card kpi-card kpi-green">
         <div class="kpi-title">Most Mentioned Symptom</div>
         <div class="kpi-value">{top_symptom}</div>
     </div>
@@ -386,15 +432,15 @@ if filtered_df.empty:
     st.warning("No data available for the selected filters.")
 else:
     map_df = filtered_df.copy()
-    map_df["radius_glow"] = map_df["cases"] * 2200
-    map_df["radius_core"] = map_df["cases"] * 800
+    map_df["radius_glow"] = map_df["cases"] * 2600
+    map_df["radius_core"] = map_df["cases"] * 900
 
     if is_dark:
-        map_df["glow_color"] = [[255, 90, 90, 70]] * len(map_df)
-        map_df["core_color"] = [[255, 82, 82, 190]] * len(map_df)
+        map_df["glow_color"] = [[255, 90, 90, 58]] * len(map_df)
+        map_df["core_color"] = [[255, 82, 82, 182]] * len(map_df)
     else:
-        map_df["glow_color"] = [[255, 120, 120, 55]] * len(map_df)
-        map_df["core_color"] = [[255, 96, 96, 170]] * len(map_df)
+        map_df["glow_color"] = [[255, 120, 120, 46]] * len(map_df)
+        map_df["core_color"] = [[255, 96, 96, 158]] * len(map_df)
 
     glow_layer = pdk.Layer(
         "ScatterplotLayer",
@@ -403,7 +449,7 @@ else:
         get_radius="radius_glow",
         get_fill_color="glow_color",
         pickable=True,
-        opacity=0.35
+        opacity=0.35,
     )
 
     core_layer = pdk.Layer(
@@ -413,7 +459,7 @@ else:
         get_radius="radius_core",
         get_fill_color="core_color",
         pickable=True,
-        opacity=0.85
+        opacity=0.88,
     )
 
     tooltip = {
@@ -433,25 +479,25 @@ else:
     }
 
     deck = pdk.Deck(
-    layers=[glow_layer, core_layer],
-    initial_view_state=pdk.ViewState(
-        latitude=20,
-        longitude=15,
-        zoom=1.1,
-        pitch=0
-    ),
-    map_style=MAP_STYLE,
-    tooltip=tooltip
-)
+        layers=[glow_layer, core_layer],
+        initial_view_state=pdk.ViewState(
+            latitude=20,
+            longitude=15,
+            zoom=1.1,
+            pitch=0
+        ),
+        map_style=MAP_STYLE,
+        tooltip=tooltip
+    )
 
-st.pydeck_chart(deck, use_container_width=True, height=420)
+    st.pydeck_chart(deck, use_container_width=True, height=460)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # =========================================================
 # CHARTS
 # =========================================================
-left_col, right_col = st.columns([1.25, 1])
+left_col, right_col = st.columns([1.35, 1])
 
 with left_col:
     st.markdown('<div class="card">', unsafe_allow_html=True)
@@ -481,12 +527,12 @@ with left_col:
 
         fig_bar.update_traces(
             marker_line_width=1.5,
-            marker_line_color="rgba(255,255,255,0.6)"
+            marker_line_color="rgba(255,255,255,0.55)"
         )
 
         fig_bar.update_layout(
             showlegend=False,
-            height=330,
+            height=350,
             margin=dict(l=10, r=10, t=10, b=10),
             plot_bgcolor="rgba(0,0,0,0)",
             paper_bgcolor="rgba(0,0,0,0)",
@@ -525,14 +571,16 @@ with right_col:
                     labels=symptom_df["Symptom"],
                     values=symptom_df["Count"],
                     hole=0.58,
-                    marker=dict(colors=[symptom_colors.get(s, "#cccccc") for s in symptom_df["Symptom"]]),
+                    marker=dict(
+                        colors=[symptom_colors.get(s, "#cccccc") for s in symptom_df["Symptom"]]
+                    ),
                     textinfo="label+percent"
                 )
             ]
         )
 
         fig_donut.update_layout(
-            height=330,
+            height=350,
             margin=dict(l=10, r=10, t=10, b=10),
             legend=dict(
                 orientation="v",
@@ -549,6 +597,9 @@ with right_col:
 
     st.markdown('</div>', unsafe_allow_html=True)
 
+# =========================================================
+# OPTIONAL TABLE
+# =========================================================
 with st.expander("Show Dummy Data Table"):
     show_df = filtered_df.sort_values(["date", "cases"], ascending=[False, False]).reset_index(drop=True)
     st.dataframe(show_df, use_container_width=True)
