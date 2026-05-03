@@ -1,516 +1,349 @@
 import streamlit as st
-import torch
-import numpy as np
 import pandas as pd
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification,
-    AutoModelForTokenClassification
-)
+import numpy as np
+import pydeck as pdk
+import altair as alt
 
 # =========================================================
 # PAGE CONFIG
 # =========================================================
-st.set_page_config(page_title="Food Safety Dashboard", layout="wide")
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# =========================================================
-# MODEL PATHS
-# =========================================================
-BERTWEET_PATH = "models/bertweet_final"
-BIOBERT_PATH = "models/biobert_best_ner"
-QWEN_PATH = "models/qwen_final_model"
-
-# =========================================================
-# LABEL MAPS
-# =========================================================
-bertweet_label_map = {
-    0: "Noise",
-    1: "Alert"
-}
-
-bio_id2label = {
-    0: "O",
-    1: "B-food",
-    2: "I-food",
-    3: "B-symptom",
-    4: "I-symptom",
-    5: "B-loc",
-    6: "I-loc"
-}
-
-# عدلي هذا بالمابينق الحقيقي حق Qwen
-qwen_id2label = {
-    0: "Category 0",
-    1: "Category 1",
-    2: "Category 2",
-    3: "Category 3"
-}
+st.set_page_config(
+    page_title="Food Safety Monitoring Dashboard",
+    layout="wide"
+)
 
 # =========================================================
 # DUMMY DATA
 # =========================================================
-dummy_data = pd.DataFrame([
+data = pd.DataFrame([
     {
-        "text": "Customer in Riyadh reported vomiting after eating chicken shawarma from a local restaurant last night.",
-        "expected_type": "alert"
+        "id": 1,
+        "city": "Riyadh",
+        "country": "Saudi Arabia",
+        "lat": 24.7136,
+        "lon": 46.6753,
+        "alert_level": "High",
+        "hazard": "Salmonella",
+        "product": "Frozen Berries",
+        "category": "Frozen Foods",
+        "source": "Official Recall",
+        "status": "Open",
+        "cases": 12
     },
     {
-        "text": "Several people in Jeddah complained of diarrhea after consuming shrimp sandwiches from a seaside cafe.",
-        "expected_type": "alert"
+        "id": 2,
+        "city": "Jeddah",
+        "country": "Saudi Arabia",
+        "lat": 21.5433,
+        "lon": 39.1728,
+        "alert_level": "Medium",
+        "hazard": "Food Poisoning",
+        "product": "Chicken Shawarma",
+        "category": "Ready-to-Eat",
+        "source": "Social Media",
+        "status": "Investigating",
+        "cases": 8
     },
     {
-        "text": "Recall notice: frozen mixed berries may be contaminated with salmonella in Dubai supermarkets.",
-        "expected_type": "alert"
+        "id": 3,
+        "city": "Dammam",
+        "country": "Saudi Arabia",
+        "lat": 26.4207,
+        "lon": 50.0888,
+        "alert_level": "Low",
+        "hazard": "Listeria",
+        "product": "Packaged Salad",
+        "category": "Vegetables",
+        "source": "Consumer Complaint",
+        "status": "Closed",
+        "cases": 3
     },
     {
-        "text": "Food poisoning suspected after families in London ate chicken tenders from a street market.",
-        "expected_type": "alert"
+        "id": 4,
+        "city": "Dubai",
+        "country": "UAE",
+        "lat": 25.2048,
+        "lon": 55.2708,
+        "alert_level": "High",
+        "hazard": "E. coli",
+        "product": "Lettuce",
+        "category": "Vegetables",
+        "source": "Official Recall",
+        "status": "Open",
+        "cases": 15
     },
     {
-        "text": "Public health warning in New York for lettuce products linked to E. coli symptoms.",
-        "expected_type": "alert"
+        "id": 5,
+        "city": "London",
+        "country": "UK",
+        "lat": 51.5072,
+        "lon": -0.1276,
+        "alert_level": "Medium",
+        "hazard": "Norovirus",
+        "product": "Sushi",
+        "category": "Seafood",
+        "source": "Social Media",
+        "status": "Investigating",
+        "cases": 7
     },
     {
-        "text": "A child in Virginia became nauseous after drinking spoiled milk bought from a corner store.",
-        "expected_type": "alert"
+        "id": 6,
+        "city": "New York",
+        "country": "USA",
+        "lat": 40.7128,
+        "lon": -74.0060,
+        "alert_level": "High",
+        "hazard": "Salmonella",
+        "product": "Egg Sandwich",
+        "category": "Bakery",
+        "source": "Consumer Complaint",
+        "status": "Open",
+        "cases": 10
     },
     {
-        "text": "Multiple complaints from Woking about sushi causing vomiting and stomach pain.",
-        "expected_type": "alert"
+        "id": 7,
+        "city": "Virginia",
+        "country": "USA",
+        "lat": 37.4316,
+        "lon": -78.6569,
+        "alert_level": "Low",
+        "hazard": "Spoilage",
+        "product": "Milk",
+        "category": "Dairy",
+        "source": "Social Media",
+        "status": "Closed",
+        "cases": 2
     },
     {
-        "text": "Restaurant in Midlothian under investigation after customers got sick from beef burgers.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Ministry notice: imported eggs may carry contamination; consumers in Riyadh advised to discard them.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "People on social media say they felt sick after eating ice cream from a festival in Jeddah.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Cluster of diarrhea cases reported after a wedding meal served rice and chicken in Dammam.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Recall expanded for packaged salad due to possible listeria contamination in the UK.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Parents in Jeddah reported children vomiting after eating school cafeteria noodles.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "A food market in London is being reviewed after several visitors experienced food poisoning.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Consumer complaint: cheese burger from a highway stop caused nausea and vomiting.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Frozen chicken product recalled after salmonella found during routine testing.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Residents in New York reported upset stomach after eating meat pies from a bakery.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Festival food stall in Riyadh linked to diarrhea cases after serving chicken wraps.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Tuna salad recall announced after reports of nausea in multiple cities.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Several students in Jeddah got sick after lunch and reported stomach hurts and vomiting.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "I had the best pizza in Riyadh today and would definitely order again.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Trying a new sushi place in Jeddah tonight, hope it is good.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "This chicken burger is amazing, no notes.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Anyone know a good food market in London for weekend shopping?",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Bought frozen berries for smoothies and they taste great.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "My mom made rice and beans and it was perfect comfort food.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Craving ice cream after work in Dubai.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "New cafe in New York serves excellent sandwiches and coffee.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "I need recommendations for salad places in Riyadh.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Made beef noodles at home and the whole family loved it.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Guys I think that shrimp wrap from Jeddah corniche made me feel sick.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Not sure if it was the milk or the egg sandwich but I got nauseous after breakfast.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Riyadh burger spot gave me food poisoning fr.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Chicken tenders were so oily I felt bad after, maybe just me though.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "The sushi was fresh and delicious, no issues at all.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "Warning circulating online about contaminated frozen fish in local stores.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "My little brother threw up after eating salad from the cafeteria.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "Do not buy that garlic dip, something tasted off and we all got stomach pain.",
-        "expected_type": "alert"
-    },
-    {
-        "text": "The noodles were spicy but really tasty.",
-        "expected_type": "noise"
-    },
-    {
-        "text": "We all ate pizza and nobody got sick, thankfully.",
-        "expected_type": "noise"
+        "id": 8,
+        "city": "Woking",
+        "country": "UK",
+        "lat": 51.3168,
+        "lon": -0.5600,
+        "alert_level": "Medium",
+        "hazard": "Food Poisoning",
+        "product": "Sushi",
+        "category": "Seafood",
+        "source": "Consumer Complaint",
+        "status": "Investigating",
+        "cases": 5
     }
 ])
 
 # =========================================================
-# LOAD MODELS
+# COLOR MAPPING
 # =========================================================
-@st.cache_resource
-def load_bertweet():
-    tokenizer = AutoTokenizer.from_pretrained(BERTWEET_PATH)
-    model = AutoModelForSequenceClassification.from_pretrained(BERTWEET_PATH)
-    model.to(device)
-    model.eval()
-    return tokenizer, model
+def color_by_alert(level):
+    if level == "High":
+        return [220, 53, 69, 180]   # red
+    elif level == "Medium":
+        return [255, 193, 7, 180]   # yellow
+    else:
+        return [40, 167, 69, 180]   # green
 
-@st.cache_resource
-def load_biobert():
-    tokenizer = AutoTokenizer.from_pretrained(BIOBERT_PATH)
-    model = AutoModelForTokenClassification.from_pretrained(BIOBERT_PATH)
-    model.to(device)
-    model.eval()
-    return tokenizer, model
-
-@st.cache_resource
-def load_qwen():
-    tokenizer = AutoTokenizer.from_pretrained(QWEN_PATH, trust_remote_code=True)
-    model = AutoModelForSequenceClassification.from_pretrained(QWEN_PATH, trust_remote_code=True)
-    model.to(device)
-    model.eval()
-    return tokenizer, model
-
-bertweet_tokenizer, bertweet_model = load_bertweet()
-biobert_tokenizer, biobert_model = load_biobert()
-qwen_tokenizer, qwen_model = load_qwen()
+data["color"] = data["alert_level"].apply(color_by_alert)
+data["radius"] = data["cases"] * 4000
 
 # =========================================================
-# BERTWEET PREDICTION
+# SIDEBAR FILTERS
 # =========================================================
-def predict_alert(text):
-    inputs = bertweet_tokenizer(
-        str(text),
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=128
-    )
-    inputs = {k: v.to(device) for k, v in inputs.items()}
+st.sidebar.title("Filters")
 
-    with torch.no_grad():
-        outputs = bertweet_model(**inputs)
-        probs = torch.softmax(outputs.logits, dim=1)[0].cpu().numpy()
-        pred = int(np.argmax(probs))
+selected_country = st.sidebar.multiselect(
+    "Country",
+    options=sorted(data["country"].unique()),
+    default=sorted(data["country"].unique())
+)
 
-    return bertweet_label_map[pred], float(probs[pred]), probs
+selected_alert = st.sidebar.multiselect(
+    "Alert Level",
+    options=["High", "Medium", "Low"],
+    default=["High", "Medium", "Low"]
+)
 
-# =========================================================
-# BIOBERT NER
-# =========================================================
-def predict_ner(text):
-    tokens = str(text).split()
+selected_source = st.sidebar.multiselect(
+    "Source",
+    options=sorted(data["source"].unique()),
+    default=sorted(data["source"].unique())
+)
 
-    enc = biobert_tokenizer(
-        tokens,
-        is_split_into_words=True,
-        return_tensors="pt",
-        truncation=True,
-        max_length=128
-    )
-
-    word_ids = enc.word_ids(batch_index=0)
-    inputs = {k: v.to(device) for k, v in enc.items()}
-
-    with torch.no_grad():
-        outputs = biobert_model(**inputs)
-
-    pred_ids = outputs.logits.argmax(dim=-1)[0].cpu().tolist()
-
-    first_subword_preds = {}
-    for i, word_id in enumerate(word_ids):
-        if word_id is None:
-            continue
-        if word_id not in first_subword_preds:
-            first_subword_preds[word_id] = pred_ids[i]
-
-    tags = [
-        bio_id2label[first_subword_preds[i]] if i in first_subword_preds else "O"
-        for i in range(len(tokens))
-    ]
-
-    return tokens, tags
-
-def extract_entities(tokens, tags):
-    entities = {"food": [], "symptom": [], "loc": []}
-    current_tokens = []
-    current_type = None
-
-    for tok, tag in zip(tokens, tags):
-        if tag == "O":
-            if current_tokens and current_type in entities:
-                entities[current_type].append(" ".join(current_tokens))
-            current_tokens = []
-            current_type = None
-            continue
-
-        prefix, ent_type = tag.split("-", 1)
-
-        if prefix == "B":
-            if current_tokens and current_type in entities:
-                entities[current_type].append(" ".join(current_tokens))
-            current_tokens = [tok]
-            current_type = ent_type
-
-        elif prefix == "I" and current_type == ent_type:
-            current_tokens.append(tok)
-
-    if current_tokens and current_type in entities:
-        entities[current_type].append(" ".join(current_tokens))
-
-    return entities
+filtered_df = data[
+    (data["country"].isin(selected_country)) &
+    (data["alert_level"].isin(selected_alert)) &
+    (data["source"].isin(selected_source))
+].copy()
 
 # =========================================================
-# QWEN CATEGORY PREDICTION
-# =========================================================
-def predict_category(text):
-    formatted_text = f"Title:  Text: {str(text)}"
-
-    inputs = qwen_tokenizer(
-        formatted_text,
-        return_tensors="pt",
-        truncation=True,
-        padding=True,
-        max_length=512
-    )
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-
-    with torch.no_grad():
-        outputs = qwen_model(**inputs)
-        probs = torch.softmax(outputs.logits, dim=1)[0].cpu().numpy()
-        pred = int(np.argmax(probs))
-
-    label = qwen_id2label.get(pred, f"Class {pred}")
-    return label, float(probs[pred]), probs
-
-# =========================================================
-# FULL PIPELINE
-# =========================================================
-def run_pipeline(text):
-    alert_label, alert_conf, alert_probs = predict_alert(text)
-
-    result = {
-        "alert_label": alert_label,
-        "alert_conf": alert_conf,
-        "alert_probs": alert_probs,
-        "entities": None,
-        "category_label": None,
-        "category_conf": None,
-        "category_probs": None
-    }
-
-    if alert_label == "Alert":
-        tokens, tags = predict_ner(text)
-        entities = extract_entities(tokens, tags)
-
-        category_label, category_conf, category_probs = predict_category(text)
-
-        result["entities"] = entities
-        result["category_label"] = category_label
-        result["category_conf"] = category_conf
-        result["category_probs"] = category_probs
-
-    return result
-
-# =========================================================
-# UI
+# HEADER
 # =========================================================
 st.title("Food Safety Monitoring Dashboard")
-
-tab1, tab2, tab3 = st.tabs(["Single Text Analysis", "CSV Upload", "Dummy Data"])
-
-# =========================================================
-# TAB 1: SINGLE TEXT
-# =========================================================
-with tab1:
-    user_text = st.text_area("Enter text", height=180)
-
-    if st.button("Analyze Text"):
-        if user_text.strip():
-            result = run_pipeline(user_text)
-
-            col1, col2 = st.columns(2)
-
-            with col1:
-                st.subheader("Alert Detection")
-                st.metric("Prediction", result["alert_label"])
-                st.metric("Confidence", f"{result['alert_conf']:.4f}")
-
-            with col2:
-                st.subheader("Product Category")
-                if result["category_label"] is not None:
-                    st.metric("Category", result["category_label"])
-                    st.metric("Confidence", f"{result['category_conf']:.4f}")
-                else:
-                    st.info("Skipped because prediction is Noise.")
-
-            st.subheader("Named Entity Recognition")
-            if result["entities"] is not None:
-                st.json(result["entities"])
-            else:
-                st.info("Skipped because prediction is Noise.")
+st.caption("Prototype UI using dummy data only")
 
 # =========================================================
-# TAB 2: CSV
+# KPI SECTION
 # =========================================================
-with tab2:
-    uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+total_alerts = len(filtered_df)
+open_alerts = (filtered_df["status"] == "Open").sum()
+investigating_alerts = (filtered_df["status"] == "Investigating").sum()
+total_cases = filtered_df["cases"].sum()
 
-    if uploaded_file is not None:
-        df_upload = pd.read_csv(uploaded_file)
-        st.write("Uploaded data preview:")
-        st.dataframe(df_upload.head())
+k1, k2, k3, k4 = st.columns(4)
 
-        text_column = st.selectbox("Select text column", df_upload.columns)
+with k1:
+    st.metric("Total Alerts", total_alerts)
 
-        if st.button("Run Batch Analysis on CSV"):
-            output_rows = []
+with k2:
+    st.metric("Open Alerts", open_alerts)
 
-            for _, row in df_upload.iterrows():
-                text = str(row[text_column])
-                result = run_pipeline(text)
+with k3:
+    st.metric("Under Investigation", investigating_alerts)
 
-                entities = result["entities"] if result["entities"] is not None else {
-                    "food": [],
-                    "symptom": [],
-                    "loc": []
-                }
-
-                output_rows.append({
-                    "text": text,
-                    "alert_label": result["alert_label"],
-                    "alert_confidence": result["alert_conf"],
-                    "food_entities": ", ".join(entities["food"]),
-                    "symptom_entities": ", ".join(entities["symptom"]),
-                    "location_entities": ", ".join(entities["loc"]),
-                    "product_category": result["category_label"] if result["category_label"] is not None else "",
-                    "category_confidence": result["category_conf"] if result["category_conf"] is not None else ""
-                })
-
-            results_df = pd.DataFrame(output_rows)
-
-            st.subheader("Batch Results")
-            st.dataframe(results_df)
-
-            csv = results_df.to_csv(index=False).encode("utf-8")
-            st.download_button(
-                label="Download Results CSV",
-                data=csv,
-                file_name="csv_predictions.csv",
-                mime="text/csv"
-            )
+with k4:
+    st.metric("Reported Cases", total_cases)
 
 # =========================================================
-# TAB 3: DUMMY DATA
+# MAP + SIDE CHARTS
 # =========================================================
-with tab3:
-    st.subheader("Dummy Data Preview")
-    st.dataframe(dummy_data)
+left, right = st.columns([2.2, 1])
 
-    if st.button("Run Batch Analysis on Dummy Data"):
-        output_rows = []
+with left:
+    st.subheader("Geographical Distribution")
 
-        for _, row in dummy_data.iterrows():
-            text = str(row["text"])
-            result = run_pipeline(text)
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=filtered_df,
+        get_position="[lon, lat]",
+        get_fill_color="color",
+        get_radius="radius",
+        pickable=True,
+        opacity=0.8
+    )
 
-            entities = result["entities"] if result["entities"] is not None else {
-                "food": [],
-                "symptom": [],
-                "loc": []
-            }
+    view_state = pdk.ViewState(
+        latitude=29,
+        longitude=20,
+        zoom=1.4,
+        pitch=0
+    )
 
-            output_rows.append({
-                "text": text,
-                "expected_type": row["expected_type"],
-                "alert_label": result["alert_label"],
-                "alert_confidence": result["alert_conf"],
-                "food_entities": ", ".join(entities["food"]),
-                "symptom_entities": ", ".join(entities["symptom"]),
-                "location_entities": ", ".join(entities["loc"]),
-                "product_category": result["category_label"] if result["category_label"] is not None else "",
-                "category_confidence": result["category_conf"] if result["category_conf"] is not None else ""
-            })
+    tooltip = {
+        "html": """
+        <b>City:</b> {city} <br/>
+        <b>Country:</b> {country} <br/>
+        <b>Alert:</b> {alert_level} <br/>
+        <b>Hazard:</b> {hazard} <br/>
+        <b>Product:</b> {product} <br/>
+        <b>Cases:</b> {cases}
+        """,
+        "style": {
+            "backgroundColor": "white",
+            "color": "black"
+        }
+    }
 
-        results_df = pd.DataFrame(output_rows)
+    st.pydeck_chart(
+        pdk.Deck(
+            layers=[layer],
+            initial_view_state=view_state,
+            tooltip=tooltip,
+            map_style="mapbox://styles/mapbox/light-v9"
+        ),
+        use_container_width=True
+    )
 
-        st.subheader("Dummy Data Results")
-        st.dataframe(results_df)
+with right:
+    st.subheader("Alerts by Level")
 
-        csv = results_df.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="Download Dummy Results CSV",
-            data=csv,
-            file_name="dummy_predictions.csv",
-            mime="text/csv"
-        )
+    level_chart = (
+        filtered_df.groupby("alert_level")
+        .size()
+        .reset_index(name="count")
+    )
+
+    chart1 = alt.Chart(level_chart).mark_bar().encode(
+        x=alt.X("alert_level:N", title="Alert Level"),
+        y=alt.Y("count:Q", title="Count"),
+        tooltip=["alert_level", "count"]
+    ).properties(height=220)
+
+    st.altair_chart(chart1, use_container_width=True)
+
+    st.subheader("Cases by Source")
+
+    source_chart = (
+        filtered_df.groupby("source")["cases"]
+        .sum()
+        .reset_index()
+    )
+
+    chart2 = alt.Chart(source_chart).mark_arc(innerRadius=45).encode(
+        theta="cases:Q",
+        color="source:N",
+        tooltip=["source", "cases"]
+    ).properties(height=260)
+
+    st.altair_chart(chart2, use_container_width=True)
+
+# =========================================================
+# SECOND ROW
+# =========================================================
+c1, c2 = st.columns([1.2, 1.2])
+
+with c1:
+    st.subheader("Top Hazard Types")
+
+    hazard_chart = (
+        filtered_df.groupby("hazard")
+        .size()
+        .reset_index(name="count")
+        .sort_values("count", ascending=False)
+    )
+
+    chart3 = alt.Chart(hazard_chart).mark_bar().encode(
+        x=alt.X("count:Q", title="Count"),
+        y=alt.Y("hazard:N", sort="-x", title="Hazard"),
+        tooltip=["hazard", "count"]
+    ).properties(height=300)
+
+    st.altair_chart(chart3, use_container_width=True)
+
+with c2:
+    st.subheader("Top Product Categories")
+
+    category_chart = (
+        filtered_df.groupby("category")
+        .size()
+        .reset_index(name="count")
+        .sort_values("count", ascending=False)
+    )
+
+    chart4 = alt.Chart(category_chart).mark_bar().encode(
+        x=alt.X("count:Q", title="Count"),
+        y=alt.Y("category:N", sort="-x", title="Category"),
+        tooltip=["category", "count"]
+    ).properties(height=300)
+
+    st.altair_chart(chart4, use_container_width=True)
+
+# =========================================================
+# TABLE
+# =========================================================
+st.subheader("Alert Details")
+
+display_df = filtered_df[[
+    "id", "city", "country", "alert_level", "hazard",
+    "product", "category", "source", "status", "cases"
+]].sort_values(by=["alert_level", "cases"], ascending=[True, False])
+
+st.dataframe(display_df, use_container_width=True)
+
+# =========================================================
+# DOWNLOAD
+# =========================================================
+csv_data = display_df.to_csv(index=False).encode("utf-8")
+st.download_button(
+    label="Download Alerts Data",
+    data=csv_data,
+    file_name="food_safety_alerts_dummy.csv",
+    mime="text/csv"
+)
