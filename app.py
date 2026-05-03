@@ -39,7 +39,7 @@ if is_dark:
     TEXT = "#eaf2ff"
     MUTED = "#9db2ce"
     GRID = "rgba(120, 160, 220, 0.15)"
-    MAP_STYLE = "mapbox://styles/mapbox/dark-v10"
+    MAP_STYLE = "https://basemaps.cartocdn.com/gl/dark-matter-nolabels-gl-style/style.json"
 else:
     BG = "linear-gradient(180deg, #f7f9ff 0%, #edf3ff 100%)"
     CARD_BG = "rgba(255,255,255,0.92)"
@@ -48,7 +48,7 @@ else:
     TEXT = "#243247"
     MUTED = "#6c7a93"
     GRID = "rgba(120, 140, 170, 0.20)"
-    MAP_STYLE = "mapbox://styles/mapbox/light-v10"
+    MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-nolabels-gl-style/style.json"
 
 # =========================================================
 # CUSTOM CSS
@@ -433,18 +433,18 @@ else:
     }
 
     deck = pdk.Deck(
-        layers=[glow_layer, core_layer],
-        initial_view_state=pdk.ViewState(
-            latitude=20,
-            longitude=15,
-            zoom=1.1,
-            pitch=0
-        ),
-        map_style=MAP_STYLE,
-        tooltip=tooltip
-    )
+    layers=[glow_layer, core_layer],
+    initial_view_state=pdk.ViewState(
+        latitude=20,
+        longitude=15,
+        zoom=1.1,
+        pitch=0
+    ),
+    map_style=MAP_STYLE,
+    tooltip=tooltip
+)
 
-    st.pydeck_chart(deck, use_container_width=True, height=420)
+st.pydeck_chart(deck, use_container_width=True, height=420)
 
 st.markdown('</div>', unsafe_allow_html=True)
 
