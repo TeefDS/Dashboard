@@ -60,17 +60,17 @@ st.markdown(f"""
     }}
 
     .block-container {{
-        max-width: 1600px;
-        padding-top: 1rem;
+        max-width: 1750px;
+        padding-top: 0.7rem;
         padding-bottom: 1.5rem;
     }}
 
     .top-bar {{
         background: {BAR_BG};
         border: 1px solid {BORDER};
-        border-radius: 16px;
-        padding: 14px 18px;
-        margin-bottom: 14px;
+        border-radius: 12px;
+        padding: 16px 20px 14px 20px;
+        margin-bottom: 16px;
         box-shadow: 0 8px 24px rgba(40, 70, 140, 0.10);
     }}
 
@@ -158,14 +158,13 @@ st.markdown(f"""
 def generate_dummy_data():
     np.random.seed(42)
 
-    # السعودية فيها كثافة عالية جدًا
     saudi_hotspots = [
-        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753, 22),
-        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728, 20),
-        ("Dammam", "Saudi Arabia", 26.4207, 50.0888, 15),
-        ("Makkah", "Saudi Arabia", 21.3891, 39.8579, 12),
-        ("Madinah", "Saudi Arabia", 24.5247, 39.5692, 10),
-        ("Khobar", "Saudi Arabia", 26.2172, 50.1971, 10),
+        ("Riyadh", "Saudi Arabia", 24.7136, 46.6753, 26),
+        ("Jeddah", "Saudi Arabia", 21.5433, 39.1728, 23),
+        ("Dammam", "Saudi Arabia", 26.4207, 50.0888, 18),
+        ("Makkah", "Saudi Arabia", 21.3891, 39.8579, 14),
+        ("Madinah", "Saudi Arabia", 24.5247, 39.5692, 12),
+        ("Khobar", "Saudi Arabia", 26.2172, 50.1971, 12),
     ]
 
     global_hotspots = [
@@ -213,8 +212,8 @@ def generate_dummy_data():
     symptoms = ["Vomiting", "Fever", "Diarrhea", "Nausea"]
     symptom_probs = [0.40, 0.30, 0.20, 0.10]
 
-    sources = ["Social Media", "Official Recall", "Consumer Complaint", "News"]
-    source_probs = [0.38, 0.27, 0.21, 0.14]
+    sources = ["X", "News"]
+    source_probs = [0.68, 0.32]
 
     hazards = ["Salmonella", "E. coli", "Listeria", "Food Poisoning", "Norovirus"]
     statuses = ["Open", "Investigating", "Closed"]
@@ -224,9 +223,7 @@ def generate_dummy_data():
     rows = []
     idx = 1
 
-    # اليوم الحالي
     total_today = 260
-    # قديم
     total_old = 220
 
     saudi_weights = np.array([x[4] for x in saudi_hotspots], dtype=float)
@@ -235,7 +232,6 @@ def generate_dummy_data():
     global_weights = np.array([x[4] for x in global_hotspots], dtype=float)
     global_weights = global_weights / global_weights.sum()
 
-    # 150 من اليوم داخل السعودية تقريبًا
     saudi_today = 150
     global_today = total_today - saudi_today
 
@@ -306,11 +302,13 @@ def generate_dummy_data():
         })
         idx += 1
 
-    # البيانات القديمة
-    all_old_places = [(x[0], x[1], x[2], x[3]) for x in saudi_hotspots] + [(x[0], x[1], x[2], x[3]) for x in global_hotspots] + regular_places
+    all_old_places = (
+        [(x[0], x[1], x[2], x[3]) for x in saudi_hotspots] +
+        [(x[0], x[1], x[2], x[3]) for x in global_hotspots] +
+        regular_places
+    )
 
     for _ in range(total_old):
-        # برضه نخلي السعودية فيها كثافة أكبر
         if np.random.rand() < 0.45:
             chosen_idx = np.random.choice(len(saudi_hotspots), p=saudi_weights)
             city, country, lat, lon, _ = saudi_hotspots[chosen_idx]
@@ -357,23 +355,34 @@ df = generate_dummy_data()
 # =========================================================
 # TOP BAR
 # =========================================================
-# =========================================================
-# TOP BAR
-# =========================================================
 st.markdown('<div class="top-bar">', unsafe_allow_html=True)
 
-# ---------- Row 1 ----------
-r1c1, r1c2, r1c3, r1c4 = st.columns([1.6, 1.2, 1.1, 1.0], gap="small")
+r1c1, r1c2, r1c3, r1c4 = st.columns([1.5, 1.15, 1.15, 1.0], gap="medium")
 
 with r1c1:
     st.markdown(
         f"""
-        <div style="padding-top: 6px;">
-            <div style="font-size:30px; font-weight:800; color:{TEXT}; line-height:1;">
+        <div style="
+            height: 78px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            padding-left:4px;
+        ">
+            <div style="
+                font-size:30px;
+                font-weight:800;
+                color:{TEXT};
+                line-height:1;
+                margin-bottom:6px;
+            ">
                 Filters & Search
             </div>
-            <div style="font-size:13px; color:{MUTED}; margin-top:6px;">
-                Explore alerts by category, date range, source, or keyword
+            <div style="
+                font-size:13px;
+                color:{MUTED};
+            ">
+                Explore alerts by symptom, date range, source, or keyword
             </div>
         </div>
         """,
@@ -381,17 +390,17 @@ with r1c1:
     )
 
 with r1c2:
-    selected_category = st.selectbox(
-        "Product Category",
-        ["All"] + sorted(df["product_category"].unique().tolist()),
+    selected_symptom = st.selectbox(
+        "Symptoms",
+        ["All"] + sorted(df["symptom"].unique().tolist()),
         index=0,
-        key="selected_category"
+        key="selected_symptom"
     )
 
 with r1c3:
     selected_range = st.selectbox(
         "Date Range",
-        ["Today", "Last 7 Days", "Last 30 Days", "All"],
+        ["Last 7 Days", "Last 14 Days", "Last 30 Days", "All"],
         index=0,
         key="selected_range"
     )
@@ -399,20 +408,19 @@ with r1c3:
 with r1c4:
     selected_source = st.selectbox(
         "Source",
-        ["All"] + sorted(df["source"].unique().tolist()),
+        ["All", "X", "News"],
         index=0,
         key="selected_source"
     )
 
-st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
-# ---------- Row 2 ----------
-r2c1, r2c2, r2c3 = st.columns([3.2, 0.9, 5.5], gap="small")
+r2c1, r2c2, r2c3 = st.columns([3.2, 1.1, 5.7], gap="medium")
 
 with r2c1:
     search_text = st.text_input(
         "Search",
-        placeholder="Search by city, title, symptom...",
+        placeholder="City / title / symptom",
         key="search_text"
     )
 
@@ -434,15 +442,15 @@ st.markdown('</div>', unsafe_allow_html=True)
 # =========================================================
 filtered_df = df.copy()
 
-if selected_category != "All":
-    filtered_df = filtered_df[filtered_df["product_category"] == selected_category]
+if selected_symptom != "All":
+    filtered_df = filtered_df[filtered_df["symptom"] == selected_symptom]
 
 today = pd.to_datetime(datetime.now().date())
 
-if selected_range == "Today":
-    filtered_df = filtered_df[filtered_df["date"] == today]
-elif selected_range == "Last 7 Days":
+if selected_range == "Last 7 Days":
     filtered_df = filtered_df[filtered_df["date"] >= today - pd.Timedelta(days=6)]
+elif selected_range == "Last 14 Days":
+    filtered_df = filtered_df[filtered_df["date"] >= today - pd.Timedelta(days=13)]
 elif selected_range == "Last 30 Days":
     filtered_df = filtered_df[filtered_df["date"] >= today - pd.Timedelta(days=29)]
 
